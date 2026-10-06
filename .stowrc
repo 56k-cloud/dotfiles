@@ -1,0 +1,6 @@
+# stow defaults its target to the PARENT of the stow dir. This repo is cloned to
+# ~/dotfiles-public, whose parent is ~, which happens to be right — but pin it explicitly so it
+# works regardless of clone location. --no-folding symlinks individual files rather than whole
+# dirs, so a package owning ~/.tmux/ doesn't capture the entire directory.
+--target=~
+--no-folding
