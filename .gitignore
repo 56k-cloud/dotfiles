@@ -1,0 +1,7 @@
+# OS cruft
+.DS_Store
+
+# Editor swap/backup files — a .swp holds unsaved buffer state and must never be committed.
+*.swp
+*.swo
+*~
