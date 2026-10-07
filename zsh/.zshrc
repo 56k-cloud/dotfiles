@@ -3,18 +3,25 @@
 
 export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
 
-# --- Oh My Zsh -------------------------------------------------------------------------------
+# --- Oh My Zsh (optional) --------------------------------------------------------------------
+# Sourced only if installed — the prompt below does NOT depend on it, so this file stays snappy on
+# a minimal machine (OMZ adds real startup cost). When present, OMZ still supplies its plugins
+# (git, etc.); its theme is left empty because the lean prompt below replaces it.
 export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="robbyrussell"            # swap freely; see https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME=""
 plugins=(git)
-# Guarded so this file is portable to a machine where Oh My Zsh isn't installed (no error, no theme).
 [ -d "$ZSH" ] && source "$ZSH/oh-my-zsh.sh"
 
-# Show the short hostname in the prompt over SSH, so you always know which box you're on.
-# Local shells stay clean — this only fires under ssh. Prepends to the theme's PROMPT.
-if [[ -n "$SSH_CONNECTION" ]]; then
-  PROMPT="%{$fg_bold[yellow]%}%m%{$reset_color%} $PROMPT"
-fi
+# --- Prompt: lean, no OMZ dependency, easy on narrow screens ---------------------------------
+# venv name (when a virtualenv is active) + path + caret, e.g. `~> ` or `(.venv) ~/src/demo> `.
+# VIRTUAL_ENV_DISABLE_PROMPT stops Python's venv `activate` from prepending its own `(.venv)`
+# on top of ours. Set after the OMZ source so it wins over any theme.
+setopt prompt_subst
+VIRTUAL_ENV_DISABLE_PROMPT=1
+PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}%~%f> '
+# Tight-screen / handheld variant — current directory only instead of the full path. To switch,
+# comment the line above and uncomment this one:
+# PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}%1~%f> '
 
 # Preferred editor — probe rather than hardcode a binary name, so the same file works whether the
 # machine has nvim, vim, or only vi. Anything that shells out ($EDITOR/$VISUAL) then behaves.
