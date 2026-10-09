@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""narrow — reflow text so it fits a narrow terminal.
+
+Pipe anything into it:   fastfetch --help | narrow
+(zsh shortcut:           fastfetch --help N)
+
+Lines that already fit pass through untouched. A too-long line is fixed one of
+two ways:
+
+  * an indented "term   description" line (the usual --help layout) is
+    restacked: the term on its own line, the description wrapped beneath it
+    in one shared column;
+  * anything else is word-wrapped, keeping its indentation, with continuation
+    lines indented 2 more so you can see where a wrapped line began.
+
+It's a heuristic for the common help layout, not a parser — unusual layouts
+(tables, ASCII art) come out readable but imperfect. Width = your terminal's,
+or -w N. Colour codes are stripped (they'd break the width maths).
+"""
+import argparse
+import os
+import re
+import sys
+import textwrap
+
+ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+# indent, term, a gap of 2+ spaces, description. Indent must be non-empty:
+# prose at column 0 with a double space after a full stop is not a help row.
+TWO_COL = re.compile(r"^(\s+)(\S(?:.*?\S)?)(\s{2,})(\S.*)$")
+
+
+def term_width():
+    for fd in (1, 2, 0):
+        try:
+            return os.get_terminal_size(fd).columns
+        except OSError:
+            pass
+    try:  # piped on both ends (e.g. `| narrow | less`): ask the terminal itself
+        with open("/dev/tty") as tty:
+            return os.get_terminal_size(tty.fileno()).columns
+    except OSError:
+        pass
+    try:
+        return int(os.environ["COLUMNS"])
+    except (KeyError, ValueError):
+        return 80
+
+
+def wrap(text, width, indent, hang=""):
+    return textwrap.wrap(
+        text, width,
+        initial_indent=indent, subsequent_indent=indent + hang,
+        break_on_hyphens=False, break_long_words=True,
+    ) or [indent.rstrip()]
+
+
+class Reflow:
+    """Line-by-line reflow, with one row of lookahead for help descriptions.
+
+    Help text often continues a long description on the next line(s), indented
+    to the description column. Those continuation lines are joined back onto
+    the description, so the whole thing rewraps as one paragraph.
+    """
+
+    def __init__(self, width):
+        self.width = width
+        self.pending = None  # [term line, description, desc indent, original desc column]
+
+    def flush(self):
+        if not self.pending:
+            return []
+        term, desc, desc_col, _ = self.pending
+        self.pending = None
+        return [term] + wrap(desc, self.width, " " * desc_col)
+
+    def feed(self, line):
+        line = ANSI.sub("", line.rstrip("\n")).expandtabs()
+        out = []
+        if self.pending:
+            indent = len(line) - len(line.lstrip())
+            if line.strip() and indent >= self.pending[3] - 2:
+                self.pending[1] += " " + line.strip()  # continuation of the description
+                return []
+            out = self.flush()
+        width = self.width
+        if len(line) <= width:
+            return out + [line]
+        m = TWO_COL.match(line)
+        if m and len(m.group(1)) + len(m.group(2)) <= width:
+            lead, term, gap, desc = m.groups()
+            orig_col = len(lead) + len(term) + len(gap)
+            lead = lead[: width // 3]
+            # one description column for the whole block: short (-h) and long-only
+            # (--foo) options are indented differently but their text lines up.
+            desc_col = min(max(len(lead) + 2, 8), width // 3)
+            self.pending = [lead + term, desc, desc_col, orig_col]
+            return out
+        lead = re.match(r"\s*", line).group(0)[: width // 3]
+        return out + wrap(line.strip(), width, lead, "  ")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Reflow text to fit a narrow terminal.")
+    ap.add_argument("-w", "--width", type=int, help="target width (default: the terminal's)")
+    args = ap.parse_args()
+    width = max(args.width or term_width(), 20)
+    rf = Reflow(width)
+    try:
+        for line in sys.stdin:
+            for out in rf.feed(line):
+                sys.stdout.write(out + "\n")
+        for out in rf.flush():
+            sys.stdout.write(out + "\n")
+    except BrokenPipeError:  # `| narrow | head` — the reader left; exit quietly
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+    except KeyboardInterrupt:
+        pass
+
+
+if __name__ == "__main__":
+    main()

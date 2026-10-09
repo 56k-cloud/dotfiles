@@ -40,6 +40,14 @@ for _ed in nvim vim vi; do
 done
 unset _ed
 
+# --- Narrow-terminal helpers ----------------------------------------------------------------
+# less: chop long lines (pan with ←/→) instead of wrapping them into a mess; keep colours (R);
+# quit if it fits one screen (F) and leave it on screen afterwards (X) — git's defaults, plus S.
+export LESS="-FRSX"
+# `cmd --help N` = `cmd --help | narrow` — reflow output to fit the terminal (narrow ships in
+# this repo's `bin` package). Only defined when narrow is installed.
+command -v narrow >/dev/null 2>&1 && alias -g N='| narrow'
+
 # direnv — per-directory environment via an .envrc, auto-loaded/unloaded on cd. Guarded: only
 # hooks if direnv is installed, so this is a no-op (not an error) on a machine without it.
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
