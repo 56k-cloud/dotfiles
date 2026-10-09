@@ -12,16 +12,23 @@ ZSH_THEME=""
 plugins=(git)
 [ -d "$ZSH" ] && source "$ZSH/oh-my-zsh.sh"
 
-# --- Prompt: lean, no OMZ dependency, easy on narrow screens ---------------------------------
+# --- Prompt: lean, no OMZ dependency, adapts to width ----------------------------------------
 # venv name (when a virtualenv is active) + path + caret, e.g. `~> ` or `(.venv) ~/src/demo> `.
+# Below 100 columns (a handheld console, a phone SSH session, a narrow split) it shows only the
+# current directory (`(.venv) demo> `). Re-checked before every prompt, so resizing or a font
+# change takes effect immediately.
 # VIRTUAL_ENV_DISABLE_PROMPT stops Python's venv `activate` from prepending its own `(.venv)`
 # on top of ours. Set after the OMZ source so it wins over any theme.
 setopt prompt_subst
 VIRTUAL_ENV_DISABLE_PROMPT=1
-PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}%~%f> '
-# Tight-screen / handheld variant — current directory only instead of the full path. To switch,
-# comment the line above and uncomment this one:
-# PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}%1~%f> '
+_lean_prompt() {
+  local where='%~'
+  (( COLUMNS < 100 )) && where='%1~'
+  PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}'"$where"'%f> '
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _lean_prompt
+_lean_prompt
 
 # Preferred editor — probe rather than hardcode a binary name, so the same file works whether the
 # machine has nvim, vim, or only vi. Anything that shells out ($EDITOR/$VISUAL) then behaves.
