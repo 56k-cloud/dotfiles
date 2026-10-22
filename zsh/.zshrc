@@ -3,6 +3,21 @@
 
 export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
 
+# --- Locale: English, UTF-8, everywhere --------------------------------------------------------
+# Without a UTF-8 locale, tmux draws box/powerline glyphs as `_`, and zsh/less mangle non-ASCII.
+# en_US.UTF-8 if the machine has it; otherwise C.UTF-8 (built into glibc, so always present —
+# minimal Debian/containers often have NO en_US generated, and exporting a missing locale makes
+# every program warn "cannot set locale" and fall back to ASCII: the exact bug this prevents).
+# LC_ALL is cleared and LC_CTYPE pinned because ssh forwards the client's LC_* (macOS sends
+# LC_CTYPE=UTF-8, which isn't a valid Linux locale). A default, not a lock: ~/.zshrc.local wins.
+if locale -a 2>/dev/null | grep -qixE 'en_US\.utf-?8'; then
+  export LANG=en_US.UTF-8
+else
+  export LANG=C.UTF-8
+fi
+export LC_CTYPE="$LANG"
+unset LC_ALL
+
 # --- Oh My Zsh (optional) --------------------------------------------------------------------
 # Sourced only if installed — the prompt below does NOT depend on it, so this file stays snappy on
 # a minimal machine (OMZ adds real startup cost). When present, OMZ still supplies its plugins

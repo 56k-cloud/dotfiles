@@ -36,6 +36,15 @@ On a small screen (a handheld console, a phone SSH session, a narrow split):
 - `less` chops long lines instead of wrapping (`LESS=-FRSX`); pan with ←/→.
 - `tldr <cmd>` — short, example-first cheat sheets.
 
+### Locale
+
+`.zshrc` sets `en_US.UTF-8`, or falls back to `C.UTF-8` (still UTF-8, but not English
+collation/formats) when the machine hasn't generated it — common on minimal Debian. To get the real
+thing there: `sudo sed -i 's/^# *en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && sudo locale-gen`.
+On macOS, `LANG` comes from the terminal app (iTerm2: Profiles → Terminal → "Set locale variables
+automatically"; Terminal.app: Profiles → Advanced), which derives it from the Region setting — not
+the keyboard layout.
+
 ## Local overrides
 
 The last line of each config sources a local file, so you never fork this repo to add private bits:
