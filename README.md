@@ -21,7 +21,7 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 | Package | What it links | Notes |
 |---|---|---|
 | `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut |
-| `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns |
+| `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns; `C-a` toggles this tmux off to drive a nested (ssh) one |
 | `bin` | `~/.local/bin/narrow` | reflow text to fit a narrow terminal (needs `python3`) |
 | `tealdeer` | `~/.config/tealdeer/config.toml` | `tldr` auto-fetches its pages on first use (install `tealdeer` yourself; on macOS tealdeer reads `~/Library/Application Support/tealdeer` instead, so this one is Linux-only in effect) |
 
