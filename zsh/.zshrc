@@ -28,15 +28,16 @@ plugins=(git)
 [ -d "$ZSH" ] && source "$ZSH/oh-my-zsh.sh"
 
 # --- Prompt: lean, no OMZ dependency, adapts to width ----------------------------------------
-# venv name (when a virtualenv is active) + path + git branch + caret, e.g. `~> ` or `(.venv) ~/src/demo (main)> `.
+# venv name (when a virtualenv is active) + path + git branch, no caret — the colours mark where
+# the prompt ends. e.g. `~ ` or `(.venv) ~/src/demo (main) `.
 # Below 100 columns (a handheld console, a phone SSH session, a narrow split) it shows only the
-# current directory (`(.venv) demo> `). Re-checked before every prompt, so resizing or a font
+# current directory (`(.venv) demo `). Re-checked before every prompt, so resizing or a font
 # change takes effect immediately.
 # VIRTUAL_ENV_DISABLE_PROMPT stops Python's venv `activate` from prepending its own `(.venv)`
 # on top of ours. Set after the OMZ source so it wins over any theme.
 setopt prompt_subst
 VIRTUAL_ENV_DISABLE_PROMPT=1
-# Inside a git repo the branch follows the path — `~/src/demo (main)> ` — or the short commit hash
+# Inside a git repo the branch follows the path — `~/src/demo (main) ` — or the short commit hash
 # when HEAD is detached. The branch is referenced as ${_lean_branch}, never spliced into PROMPT:
 # under prompt_subst a spliced branch named `$(…)` would EXECUTE when you cd into a hostile clone.
 _lean_prompt() {
@@ -44,7 +45,7 @@ _lean_prompt() {
   (( COLUMNS < 100 )) && where='%1~'
   _lean_branch=$(git symbolic-ref --short -q HEAD 2>/dev/null || git rev-parse --short -q HEAD 2>/dev/null)
   _lean_branch=${_lean_branch//\%/%%}
-  PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}'"$where"'%f${_lean_branch:+ %F{yellow\}(${_lean_branch})%f}> '
+  PROMPT='%F{cyan}${VIRTUAL_ENV:+(${VIRTUAL_ENV:t}) }%f%F{blue}'"$where"'%f${_lean_branch:+ %F{yellow\}(${_lean_branch})%f} '
 }
 autoload -Uz add-zsh-hook
 add-zsh-hook precmd _lean_prompt
