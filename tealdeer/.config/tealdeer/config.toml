@@ -1,0 +1,6 @@
+# tealdeer (`tldr`) — short, example-first command cheat sheets.
+# Fetch the pages automatically on first use and refresh them monthly, so a fresh
+# machine never needs a manual `tldr --update`.
+[updates]
+auto_update = true
+auto_update_interval_hours = 720

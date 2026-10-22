@@ -11,12 +11,30 @@ local-override files this repo never contains (see [Local overrides](#local-over
 ```sh
 git clone https://github.com/jakes-homelab/dotfiles ~/dotfiles-public
 cd ~/dotfiles-public
-stow zsh tmux
+stow zsh tmux bin tealdeer    # any subset works
 ```
 
 `stow <pkg>` symlinks the package's files into `$HOME` (see `.stowrc`). For the zsh theme you also
 need [Oh My Zsh](https://github.com/ohmyzsh/ohmyzsh); without it the shell still works, just without
 the theme. `tmux` is self-contained — the per-host status color ships as `~/.tmux/host_color.sh`.
+
+| Package | What it links | Notes |
+|---|---|---|
+| `zsh` | `~/.zshrc` | lean prompt that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut |
+| `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns |
+| `bin` | `~/.local/bin/narrow` | reflow text to fit a narrow terminal (needs `python3`) |
+| `tealdeer` | `~/.config/tealdeer/config.toml` | `tldr` auto-fetches its pages on first use (install `tealdeer` yourself; on macOS tealdeer reads `~/Library/Application Support/tealdeer` instead, so this one is Linux-only in effect) |
+
+### Narrow terminals
+
+On a small screen (a handheld console, a phone SSH session, a narrow split):
+
+- `man <cmd>` reflows to your width by itself — prefer it over `--help`.
+- `cmd --help N` (= `cmd --help | narrow`) restacks the usual two-column help — option on one
+  line, description wrapped beneath — and word-wraps everything else. Lines that already fit are
+  untouched.
+- `less` chops long lines instead of wrapping (`LESS=-FRSX`); pan with ←/→.
+- `tldr <cmd>` — short, example-first cheat sheets.
 
 ## Local overrides
 
