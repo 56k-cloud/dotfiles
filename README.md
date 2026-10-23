@@ -30,15 +30,13 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 | keys | does |
 |---|---|
 | `C-b v` / `C-b h` | split: **v**ertical divider (side by side) / **h**orizontal divider (stacked). `\` and `-` still work |
-| `Alt+←↑↓→` | move between panes, no prefix |
-| `Shift+←/→` | previous / next window, no prefix |
 | `C-a` | toggle this tmux **off** so every key reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. `C-a` again = back on |
 | `C-b C-b <key>` | send one command to the nested tmux without toggling |
 
 The hostname block (bottom left) turns **yellow** while `C-b` is waiting for its next key — with
-nested tmux, that's how you see which one took it. Costs: `C-a` no longer means beginning-of-line
-(use Home); Alt/Shift+arrows no longer reach programs inside tmux. On macOS, iTerm2 needs Option
-sent as Esc+ (Profiles → Keys) for the Alt bindings.
+nested tmux, that's how you see which one took it. Cost: `C-a` no longer means beginning-of-line
+(use Home). Pane/window movement stays on the defaults (`C-b` + arrows, `C-b n` / `C-b p`) — they
+behave the same on macOS and Linux with no terminal setup.
 
 ### Narrow terminals
 
