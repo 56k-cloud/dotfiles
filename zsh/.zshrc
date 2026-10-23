@@ -76,3 +76,18 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 # Local overlay — machine-specific or personal config, kept out of this public file. Absent on a
 # machine that only has the public tier, so this is a clean no-op there.
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# --- Auto-attach tmux on SSH login -------------------------------------------------------------
+# `ssh host` lands you in the host's `main` tmux session — created if missing, re-attached if it
+# survived a dropped connection. Last in the file so ~/.zshrc.local can opt a machine out.
+# Only fires for an interactive SSH login on a real terminal, not already inside tmux:
+#   - `ssh host cmd`, scp, rsync, git-over-ssh, ansible → non-interactive / no tty → skipped.
+#   - local terminals (no $SSH_CONNECTION) → skipped; the Mac never auto-starts tmux.
+#   - VS Code's remote terminal → skipped; it has its own panes.
+# Nesting is deliberate: from a local tmux you get tmux-in-tmux — C-a toggles the outer one off.
+# Escape hatches: `C-b d` detaches to a plain shell on the host (no `exec`, so the ssh stays up);
+# `TMUX_AUTO=0` in ~/.zshrc.local turns it off for that machine.
+if [[ -o interactive && -t 0 && -t 1 && -n $SSH_CONNECTION && -z $TMUX \
+      && $TERM_PROGRAM != vscode && ${TMUX_AUTO:-1} != 0 ]] && command -v tmux >/dev/null 2>&1; then
+  tmux new-session -A -s main
+fi
