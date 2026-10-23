@@ -21,9 +21,24 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 | Package | What it links | Notes |
 |---|---|---|
 | `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut |
-| `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns; `C-a` toggles this tmux off to drive a nested (ssh) one |
+| `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns; nested-tmux toggle and keys below |
 | `bin` | `~/.local/bin/narrow` | reflow text to fit a narrow terminal (needs `python3`) |
 | `tealdeer` | `~/.config/tealdeer/config.toml` | `tldr` auto-fetches its pages on first use (install `tealdeer` yourself; on macOS tealdeer reads `~/Library/Application Support/tealdeer` instead, so this one is Linux-only in effect) |
+
+### tmux keys (beyond the defaults)
+
+| keys | does |
+|---|---|
+| `C-b v` / `C-b h` | split: **v**ertical divider (side by side) / **h**orizontal divider (stacked). `\` and `-` still work |
+| `Alt+←↑↓→` | move between panes, no prefix |
+| `Shift+←/→` | previous / next window, no prefix |
+| `C-a` | toggle this tmux **off** so every key reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. `C-a` again = back on |
+| `C-b C-b <key>` | send one command to the nested tmux without toggling |
+
+The hostname block (bottom left) turns **yellow** while `C-b` is waiting for its next key — with
+nested tmux, that's how you see which one took it. Costs: `C-a` no longer means beginning-of-line
+(use Home); Alt/Shift+arrows no longer reach programs inside tmux. On macOS, iTerm2 needs Option
+sent as Esc+ (Profiles → Keys) for the Alt bindings.
 
 ### Narrow terminals
 
