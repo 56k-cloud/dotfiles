@@ -20,7 +20,7 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 
 | Package | What it links | Notes |
 |---|---|---|
-| `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut; `ssh host` auto-attaches tmux session `main` |
+| `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut; `ssh host` auto-attaches tmux session `main`; inside tmux, `ssh host` labels the window `@host` in its colour and **reconnects after a dropped connection** (see below) |
 | `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns; nested-tmux toggle and keys below |
 | `bin` | `~/.local/bin/narrow` | reflow text to fit a narrow terminal (needs `python3`) |
 | `tealdeer` | `~/.config/tealdeer/config.toml` | `tldr` auto-fetches its pages on first use (install `tealdeer` yourself; on macOS tealdeer reads `~/Library/Application Support/tealdeer` instead, so this one is Linux-only in effect) |
@@ -30,13 +30,23 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 | keys | does |
 |---|---|
 | `C-b v` / `C-b h` | split: **v**ertical divider (side by side) / **h**orizontal divider (stacked). `\` and `-` still work |
-| `C-a` | toggle this tmux **off** so every key reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. `C-a` again = back on |
-| `C-b C-b <key>` | send one command to the nested tmux without toggling |
+| `C-b C-b` | toggle this tmux **off** so every key, `C-b` included, reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. While off, `C-b c`, `C-b n` … drive the remote. **`C-b C-b` again, both taps within 0.4 s** = back on (slower taps are two `C-b`s for the inner tmux) |
 
 The hostname block (bottom left) turns **yellow** while `C-b` is waiting for its next key — with
-nested tmux, that's how you see which one took it. Cost: `C-a` no longer means beginning-of-line
-(use Home). Pane/window movement stays on the defaults (`C-b` + arrows, `C-b n` / `C-b p`) — they
+nested tmux, that's how you see which one took it. `C-a` is the shell's beginning-of-line (the toggle
+used to live there). Pane/window movement stays on the defaults (`C-b` + arrows, `C-b n` / `C-b p`) — they
 behave the same on macOS and Linux with no terminal setup.
+
+### ssh from inside tmux
+
+`ssh host` (an interactive login, from inside tmux) renames the window to `@host` in that host's colour and
+restores the old name when you leave. When the connection drops (closing the laptop lid, the VPN going
+away), ssh notices within ~45 s (`ServerAliveInterval=15`, `CountMax=3`, passed by the wrapper so no
+ssh_config is needed). After a real session it then **reconnects every 5 s** until the host answers again, or
+until you press Ctrl-C. The remote end re-attaches its `main` tmux session, so you land back where you were.
+The label stays while it retries and is restored on Ctrl-C too. Not touched: `ssh host cmd`, scp, git, ansible,
+and anything outside tmux. A first attempt that fails within 10 s (typo, host off) is just an error.
+Tunables: `SSH_RECONNECT_DELAY` (5), `SSH_RECONNECT_MIN` (10).
 
 ### Narrow terminals
 

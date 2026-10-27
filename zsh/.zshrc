@@ -77,6 +77,59 @@ command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 # machine that only has the public tier, so this is a clean no-op there.
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
+# --- ssh from inside tmux: the window shows the host, and a dropped connection reconnects -------------
+# Inside tmux, `ssh host` renames the window to `@host` in that host's colour (~/.tmux/host_color.sh, the
+# colour its own status bar uses) and puts the old name back when the session ends.
+# Closing the laptop lid kills the connection without telling ssh. Both fixes live here, not in ssh_config,
+# so they work on every machine that has this file:
+#   - ServerAliveInterval=15 x CountMax=3: a dead connection is noticed in ~45 s (not minutes).
+#   - Reconnect: if ssh exits 255 (ssh's own failure, not your `exit`) after a real session, it retries every
+#     SSH_RECONNECT_DELAY (5) s until the host answers again (VPN back up) or you press Ctrl-C. The remote
+#     re-attaches its `main` tmux session (below), so you land back where you were, programs still running.
+# Only for an interactive login (`ssh [opts] host`): `ssh host cmd`, scp, git and ansible are untouched. A first
+# attempt that fails within SSH_RECONNECT_MIN (10) s (a typo, a host that's off) is an error, not a loop.
+ssh() {
+  if [[ -z $TMUX ]]; then command ssh "$@"; return; fi
+  local a dest= expect=0 remote_cmd=0
+  for a in "$@"; do
+    if (( expect )); then expect=0; continue; fi
+    if [[ -n $dest ]]; then remote_cmd=1; break; fi
+    case $a in
+      -[bcDEeFIiJLlmOopQRSWw]) expect=1 ;;   # options that take a separate value
+      -*) ;;
+      *) dest=$a ;;
+    esac
+  done
+  if [[ -z $dest ]] || (( remote_cmd )); then command ssh "$@"; return; fi
+
+  local host=${dest#*@}
+  [[ $host == <->.<->.<->.<-> ]] || host=${host%%.*}   # an IP stays whole; a name keeps its first label
+  local old auto color rc=0 started connected=0
+  old=$(tmux display -p '#W')
+  auto=$(tmux show -wv automatic-rename 2>/dev/null)   # "" = inherited from the global setting
+  color=$(sh ~/.tmux/host_color.sh "$host" 2>/dev/null)
+  tmux setw automatic-rename off \; rename-window "@$host"
+  [[ -n $color ]] && tmux set -w @wcolor "$color"
+  {
+    while true; do
+      started=$SECONDS
+      command ssh -o ServerAliveInterval=15 -o ServerAliveCountMax=3 "$@"
+      rc=$?
+      (( SECONDS - started >= ${SSH_RECONNECT_MIN:-10} )) && connected=1
+      (( rc == 255 && connected )) || break
+      print -P "%F{yellow}[ssh $host] connection lost; reconnecting every ${SSH_RECONNECT_DELAY:-5}s (Ctrl-C stops)%f"
+      sleep ${SSH_RECONNECT_DELAY:-5}
+    done
+  } always {
+    # Runs on normal exit AND on Ctrl-C, so the label never sticks to a window that left the host.
+    # The window's own automatic-rename setting comes back as it was, so a name you gave it isn't overwritten.
+    tmux set -uw @wcolor 2>/dev/null
+    tmux rename-window "$old" 2>/dev/null
+    if [[ -n $auto ]]; then tmux setw automatic-rename "$auto" 2>/dev/null; else tmux setw -u automatic-rename 2>/dev/null; fi
+  }
+  return $rc
+}
+
 # --- Auto-attach tmux on SSH login -------------------------------------------------------------
 # `ssh host` lands you in the host's `main` tmux session — created if missing, re-attached if it
 # survived a dropped connection. Last in the file so ~/.zshrc.local can opt a machine out.
