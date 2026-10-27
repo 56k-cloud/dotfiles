@@ -30,12 +30,11 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 | keys | does |
 |---|---|
 | `C-b v` / `C-b h` | split: **v**ertical divider (side by side) / **h**orizontal divider (stacked). `\` and `-` still work |
-| `C-a` | toggle this tmux **off** so every key reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. `C-a` again = back on |
-| `C-b C-b <key>` | send one command to the nested tmux without toggling |
+| `C-b C-b` | toggle this tmux **off** so every key, `C-b` included, reaches a nested (ssh) tmux; status moves to the top, shows `OFF`. While off, `C-b c`, `C-b n` … drive the remote. **`C-b C-b` again, both taps within 0.4 s** = back on (slower taps are two `C-b`s for the inner tmux) |
 
 The hostname block (bottom left) turns **yellow** while `C-b` is waiting for its next key — with
-nested tmux, that's how you see which one took it. Cost: `C-a` no longer means beginning-of-line
-(use Home). Pane/window movement stays on the defaults (`C-b` + arrows, `C-b n` / `C-b p`) — they
+nested tmux, that's how you see which one took it. `C-a` is the shell's beginning-of-line (the toggle
+used to live there). Pane/window movement stays on the defaults (`C-b` + arrows, `C-b n` / `C-b p`) — they
 behave the same on macOS and Linux with no terminal setup.
 
 ### ssh from inside tmux
