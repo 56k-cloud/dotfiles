@@ -20,7 +20,7 @@ the theme. `tmux` is self-contained — the per-host status color ships as `~/.t
 
 | Package | What it links | Notes |
 |---|---|---|
-| `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut; `ssh host` auto-attaches tmux session `main`; inside tmux, `ssh host` labels the window `@host` in its colour and **reconnects after a dropped connection** (see below) |
+| `zsh` | `~/.zshrc` | lean prompt (path + git branch) that narrows below 100 columns; `LESS=-FRSX`; the `N` shortcut; `ssh host` auto-attaches tmux session `main`; inside tmux, `ssh host` labels the window `@host` in its colour and **reconnects after a dropped connection** (see below); `docker` runs podman on a machine that has podman but no docker |
 | `tmux` | `~/.tmux.conf`, `~/.tmux/host_color.sh` | status bar compacts below 100 columns; nested-tmux toggle and keys below |
 | `bin` | `~/.local/bin/narrow` | reflow text to fit a narrow terminal (needs `python3`) |
 | `tealdeer` | `~/.config/tealdeer/config.toml` | `tldr` auto-fetches its pages on first use (install `tealdeer` yourself; on macOS tealdeer reads `~/Library/Application Support/tealdeer` instead, so this one is Linux-only in effect) |

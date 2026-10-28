@@ -73,6 +73,14 @@ command -v narrow >/dev/null 2>&1 && alias -g N='| narrow'
 # hooks if direnv is installed, so this is a no-op (not an error) on a machine without it.
 command -v direnv >/dev/null 2>&1 && eval "$(direnv hook zsh)"
 
+# `docker` works whether the machine has Docker or Podman (Jake, 2026-10-28): type `docker run …` and not
+# care. Only when docker itself is ABSENT and podman is present, so a machine with real Docker keeps it.
+# An alias reaches interactive shells only; scripts and programs that call `docker` need Debian's
+# `podman-docker` package (a real /usr/bin/docker that runs podman) instead.
+if ! command -v docker >/dev/null 2>&1 && command -v podman >/dev/null 2>&1; then
+  alias docker=podman
+fi
+
 # Local overlay — machine-specific or personal config, kept out of this public file. Absent on a
 # machine that only has the public tier, so this is a clean no-op there.
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
